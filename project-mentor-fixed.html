@@ -1,0 +1,1403 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Project Mentor</title>
+<style>
+  #app-root {
+    --bg: #10131c;
+    --panel: #171b26;
+    --panel-raised: #1e2330;
+    --line: #2a3040;
+    --text: #e9e7e0;
+    --text-dim: #9aa0b0;
+    --text-faint: #5f6577;
+    --amber: #f2a93b;
+    --amber-dim: #8a6a2f;
+    --blue: #6f9bf0;
+
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    padding: 0;
+    margin: 0;
+    min-height: 100vh;
+    box-sizing: border-box;
+  }
+
+  #app-root * {
+    box-sizing: border-box;
+  }
+
+  @font-face {
+    font-family: 'Newsreader';
+    src: local('Newsreader');
+  }
+
+  .pm-wrap {
+    max-width: 780px;
+    margin: 0 auto;
+    padding: 48px 24px 80px;
+  }
+
+  .pm-mark {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    letter-spacing: 0.02em;
+    color: var(--text-faint);
+    display: flex;
+    justify-content: space-between;
+    padding-bottom: 32px;
+    border-bottom: 1px solid var(--line);
+    margin-bottom: 40px;
+  }
+
+  .pm-mark span:last-child {
+    color: var(--amber);
+  }
+
+  .pm-hero h1 {
+    font-family: 'Newsreader', Georgia, serif;
+    font-size: 42px;
+    font-weight: 500;
+    line-height: 1.15;
+    letter-spacing: -0.01em;
+    margin: 0 0 16px;
+    max-width: 620px;
+  }
+
+  .pm-hero p {
+    font-size: 16px;
+    line-height: 1.6;
+    color: var(--text-dim);
+    max-width: 520px;
+    margin: 0 0 40px;
+  }
+
+  .pm-field-label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    color: var(--text-faint);
+    margin-bottom: 8px;
+    display: block;
+  }
+
+  .pm-field {
+    margin-bottom: 22px;
+  }
+
+  .pm-input {
+    width: 100%;
+    background: var(--panel);
+    border: 1px solid var(--line);
+    color: var(--text);
+    padding: 12px 14px;
+    border-radius: 4px;
+    font-size: 14px;
+    font-family: inherit;
+    outline: none;
+    transition: border-color 0.15s, box-shadow 0.15s;
+  }
+
+  .pm-input:focus {
+    border-color: var(--amber-dim);
+    box-shadow: 0 0 0 2px rgba(242, 169, 59, 0.06);
+  }
+
+  .pm-input::placeholder {
+    color: var(--text-faint);
+  }
+
+  .pm-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+
+  select.pm-input {
+    appearance: none;
+    background-image:
+      linear-gradient(45deg, transparent 50%, var(--text-faint) 50%),
+      linear-gradient(135deg, var(--text-faint) 50%, transparent 50%);
+    background-position:
+      calc(100% - 18px) center,
+      calc(100% - 13px) center;
+    background-size: 5px 5px, 5px 5px;
+    background-repeat: no-repeat;
+  }
+
+  .pm-btn {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 13px;
+    letter-spacing: 0.02em;
+    background: var(--amber);
+    color: #1a1206;
+    border: none;
+    padding: 13px 22px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: opacity 0.15s, transform 0.1s;
+  }
+
+  .pm-btn:hover {
+    opacity: 0.88;
+  }
+
+  .pm-btn:active {
+    transform: translateY(1px);
+  }
+
+  .pm-btn:disabled {
+    opacity: 0.4;
+    cursor: default;
+  }
+
+  .pm-btn:disabled:hover {
+    opacity: 0.4;
+  }
+
+  .pm-hint {
+    font-size: 12px;
+    color: var(--text-faint);
+    margin-top: 7px;
+    line-height: 1.5;
+  }
+
+  .pm-hint-link {
+    color: var(--blue);
+    text-decoration: underline;
+    cursor: pointer;
+  }
+
+  .pm-error {
+    color: #e0705f;
+    font-size: 13px;
+    margin-top: 12px;
+    font-family: 'IBM Plex Mono', monospace;
+    line-height: 1.5;
+  }
+
+  .pm-status {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 13px;
+    color: var(--text-dim);
+    margin-top: 16px;
+  }
+
+  .pm-status::after {
+    content: '';
+    display: inline-block;
+    width: 6px;
+    height: 6px;
+    background: var(--amber);
+    border-radius: 50%;
+    margin-left: 8px;
+    animation: pm-pulse 1s infinite ease-in-out;
+    vertical-align: middle;
+  }
+
+  @keyframes pm-pulse {
+    0%, 100% { opacity: 0.2; }
+    50% { opacity: 1; }
+  }
+
+  .pm-results {
+    margin-top: 56px;
+  }
+
+  .pm-results-head {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    color: var(--text-faint);
+    border-bottom: 1px solid var(--line);
+    padding-bottom: 10px;
+    margin-bottom: 24px;
+  }
+
+  .pm-brief {
+    border-left: 2px solid var(--amber-dim);
+    padding: 4px 0 4px 22px;
+    margin-bottom: 20px;
+    background: var(--panel);
+    border-radius: 0 6px 6px 0;
+  }
+
+  .pm-brief-head {
+    padding: 18px 20px 18px 0;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 16px;
+  }
+
+  .pm-brief-title {
+    font-family: 'Newsreader', Georgia, serif;
+    font-size: 21px;
+    font-weight: 500;
+    margin: 0 0 6px;
+    color: var(--text);
+  }
+
+  .pm-brief-thesis {
+    font-size: 14px;
+    color: var(--text-dim);
+    line-height: 1.5;
+    margin: 0;
+  }
+
+  .pm-brief-toggle {
+    font-family: 'IBM Plex Mono', monospace;
+    color: var(--amber);
+    font-size: 13px;
+    flex-shrink: 0;
+    padding-top: 4px;
+  }
+
+  .pm-brief-body {
+    padding: 0 20px 22px 0;
+    display: none;
+  }
+
+  .pm-brief.open .pm-brief-body {
+    display: block;
+  }
+
+  .pm-brief.open .pm-brief-head {
+    padding-bottom: 8px;
+  }
+
+  .pm-section {
+    margin-top: 18px;
+  }
+
+  .pm-section-label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10.5px;
+    letter-spacing: 0.04em;
+    color: var(--text-faint);
+    margin-bottom: 8px;
+  }
+
+  .pm-list {
+    margin: 0;
+    padding-left: 18px;
+    font-size: 14px;
+    line-height: 1.6;
+    color: var(--text);
+  }
+
+  .pm-list li {
+    margin-bottom: 5px;
+  }
+
+  .pm-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .pm-tag {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    background: var(--panel-raised);
+    border: 1px solid var(--line);
+    color: var(--blue);
+    padding: 4px 9px;
+    border-radius: 3px;
+  }
+
+  .pm-steps {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    counter-reset: step;
+  }
+
+  .pm-steps li {
+    counter-increment: step;
+    font-size: 14px;
+    line-height: 1.6;
+    padding-left: 26px;
+    position: relative;
+    margin-bottom: 8px;
+    color: var(--text);
+  }
+
+  .pm-steps li::before {
+    content: counter(step);
+    position: absolute;
+    left: 0;
+    top: 0;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    color: var(--amber);
+    border: 1px solid var(--amber-dim);
+    width: 17px;
+    height: 17px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  @media (max-width: 560px) {
+    .pm-wrap {
+      padding: 32px 18px 60px;
+    }
+
+    .pm-hero h1 {
+      font-size: 32px;
+    }
+
+    .pm-row {
+      grid-template-columns: 1fr;
+      gap: 0;
+    }
+
+    .pm-mark {
+      margin-bottom: 30px;
+    }
+  }
+</style>
+</head>
+
+<body>
+<div id="app-root">
+
+  <div class="pm-wrap">
+
+    <div class="pm-mark">
+      <span>PROJECT MENTOR</span>
+      <span>CSE · AIML</span>
+    </div>
+
+    <div class="pm-hero">
+      <h1>Turn what you already know into a final-year project worth building.</h1>
+
+      <p>
+        Tell it what you're into and what you can actually do.
+        It hands back real project theses, scoped features, a technology stack,
+        a build order, and where to take it further.
+      </p>
+    </div>
+
+    <div class="pm-field">
+      <label class="pm-field-label">INTERESTS (comma separated)</label>
+
+      <input
+        class="pm-input"
+        id="pm-interests"
+        placeholder="e.g. robotics, computer vision, agriculture, finance"
+        autocomplete="off"
+      />
+    </div>
+
+    <div class="pm-field">
+      <label class="pm-field-label">SKILLS YOU HAVE (comma separated)</label>
+
+      <input
+        class="pm-input"
+        id="pm-skills"
+        placeholder="e.g. Python, Arduino, basic ML, React"
+        autocomplete="off"
+      />
+    </div>
+
+    <div class="pm-row">
+
+      <div class="pm-field">
+        <label class="pm-field-label">PREFERRED DOMAIN</label>
+
+        <select class="pm-input" id="pm-domain">
+          <option value="no strong preference">No strong preference</option>
+          <option value="AI/ML">AI / Machine Learning</option>
+          <option value="web development">Web Development</option>
+          <option value="mobile app">Mobile App</option>
+          <option value="computer vision">Computer Vision</option>
+          <option value="NLP">NLP</option>
+          <option value="IoT / hardware">IoT / Hardware</option>
+          <option value="data science">Data Science</option>
+          <option value="cybersecurity">Cybersecurity</option>
+        </select>
+      </div>
+
+      <div class="pm-field">
+        <label class="pm-field-label">BUILD DIFFICULTY</label>
+
+        <select class="pm-input" id="pm-difficulty">
+          <option value="buildable solo in a few weeks">
+            Quick build (few weeks, solo)
+          </option>
+
+          <option
+            value="a solid one-semester team project"
+            selected
+          >
+            Standard (one semester, team)
+          </option>
+
+          <option value="an ambitious, resume-defining capstone">
+            Ambitious capstone
+          </option>
+        </select>
+      </div>
+
+    </div>
+
+    <div class="pm-field">
+
+      <label class="pm-field-label">
+        GOOGLE AI STUDIO API KEY
+      </label>
+
+      <input
+        class="pm-input"
+        id="pm-apikey"
+        type="password"
+        placeholder="Paste your Gemini API key"
+        autocomplete="off"
+        spellcheck="false"
+      />
+
+      <div class="pm-hint">
+        The key is used only for this browser session and is not stored by
+        this page. Do not publish or share your API key.
+        For a public production website, use a server-side proxy instead.
+        Get/manage your key at
+        <span class="pm-hint-link" id="pm-key-link">
+          Google AI Studio
+        </span>.
+      </div>
+
+    </div>
+
+    <button class="pm-btn" id="pm-generate">
+      GENERATE PROJECT IDEAS →
+    </button>
+
+    <div id="pm-status-area"></div>
+
+    <div class="pm-results" id="pm-results" style="display:none;">
+
+      <div class="pm-results-head">
+        GENERATED BRIEFS
+      </div>
+
+      <div id="pm-briefs"></div>
+
+    </div>
+
+  </div>
+</div>
+
+<script>
+(function () {
+
+  /*
+   * Gemini model
+   *
+   * gemini-3.7-flash is currently a stable/GA Gemini API model.
+   * If Google changes the model in the future, change this one value.
+   */
+  const GEMINI_MODEL = 'gemini-3.7-flash';
+
+  const generateBtn = document.getElementById('pm-generate');
+  const statusArea = document.getElementById('pm-status-area');
+  const resultsEl = document.getElementById('pm-results');
+  const briefsEl = document.getElementById('pm-briefs');
+
+
+  // ------------------------------------------------------------
+  // STATUS
+  // ------------------------------------------------------------
+
+  function setStatus(message, isError) {
+
+    statusArea.innerHTML = '';
+
+    if (!message) {
+      return;
+    }
+
+    const div = document.createElement('div');
+
+    div.className = isError
+      ? 'pm-error'
+      : 'pm-status';
+
+    div.textContent = message;
+
+    statusArea.appendChild(div);
+  }
+
+
+  // ------------------------------------------------------------
+  // HTML ESCAPING
+  // ------------------------------------------------------------
+
+  function escapeHtml(value) {
+
+    const div = document.createElement('div');
+
+    div.textContent =
+      value == null
+        ? ''
+        : String(value);
+
+    return div.innerHTML;
+  }
+
+
+  // ------------------------------------------------------------
+  // SAFE ARRAY
+  // ------------------------------------------------------------
+
+  function safeArray(value) {
+
+    return Array.isArray(value)
+      ? value
+      : [];
+  }
+
+
+  // ------------------------------------------------------------
+  // RENDER LIST
+  // ------------------------------------------------------------
+
+  function renderList(items) {
+
+    const list = safeArray(items);
+
+    return (
+      '<ul class="pm-list">' +
+      list
+        .map(function (item) {
+          return '<li>' + escapeHtml(item) + '</li>';
+        })
+        .join('') +
+      '</ul>'
+    );
+  }
+
+
+  // ------------------------------------------------------------
+  // RENDER STEPS
+  // ------------------------------------------------------------
+
+  function renderSteps(items) {
+
+    const list = safeArray(items);
+
+    return (
+      '<ol class="pm-steps">' +
+      list
+        .map(function (item) {
+          return '<li>' + escapeHtml(item) + '</li>';
+        })
+        .join('') +
+      '</ol>'
+    );
+  }
+
+
+  // ------------------------------------------------------------
+  // RENDER TAGS
+  // ------------------------------------------------------------
+
+  function renderTags(items) {
+
+    const list = safeArray(items);
+
+    return (
+      '<div class="pm-tags">' +
+      list
+        .map(function (item) {
+          return '<span class="pm-tag">' +
+            escapeHtml(item) +
+            '</span>';
+        })
+        .join('') +
+      '</div>'
+    );
+  }
+
+
+  // ------------------------------------------------------------
+  // RENDER PROJECT IDEAS
+  // ------------------------------------------------------------
+
+  function renderBriefs(ideas) {
+
+    briefsEl.innerHTML = '';
+
+    if (!Array.isArray(ideas) || ideas.length === 0) {
+
+      setStatus(
+        'Gemini returned no project ideas. Please try again.',
+        true
+      );
+
+      return;
+    }
+
+
+    ideas.forEach(function (idea, index) {
+
+      const brief =
+        document.createElement('div');
+
+      brief.className = 'pm-brief';
+
+
+      brief.innerHTML = `
+        <div class="pm-brief-head" data-idx="${index}">
+
+          <div>
+
+            <p class="pm-brief-title">
+              ${escapeHtml(idea.title)}
+            </p>
+
+            <p class="pm-brief-thesis">
+              ${escapeHtml(idea.thesis)}
+            </p>
+
+          </div>
+
+          <div class="pm-brief-toggle">
+            +
+          </div>
+
+        </div>
+
+
+        <div class="pm-brief-body">
+
+          <div class="pm-section">
+
+            <div class="pm-section-label">
+              KEY FEATURES
+            </div>
+
+            ${renderList(idea.features)}
+
+          </div>
+
+
+          <div class="pm-section">
+
+            <div class="pm-section-label">
+              TECH STACK
+            </div>
+
+            ${renderTags(idea.techStack)}
+
+          </div>
+
+
+          <div class="pm-section">
+
+            <div class="pm-section-label">
+              BUILD STEPS
+            </div>
+
+            ${renderSteps(idea.steps)}
+
+          </div>
+
+
+          <div class="pm-section">
+
+            <div class="pm-section-label">
+              WAYS TO TAKE IT FURTHER
+            </div>
+
+            ${renderList(idea.improvements)}
+
+          </div>
+
+        </div>
+      `;
+
+
+      const head =
+        brief.querySelector('.pm-brief-head');
+
+      const toggle =
+        brief.querySelector('.pm-brief-toggle');
+
+
+      head.addEventListener('click', function () {
+
+        const isOpen =
+          brief.classList.toggle('open');
+
+        toggle.textContent =
+          isOpen
+            ? '−'
+            : '+';
+
+      });
+
+
+      briefsEl.appendChild(brief);
+
+    });
+
+
+    resultsEl.style.display = 'block';
+  }
+
+
+  // ------------------------------------------------------------
+  // EXTRACT GEMINI TEXT
+  // ------------------------------------------------------------
+
+  function extractGeminiText(data) {
+
+    const candidates =
+      Array.isArray(data.candidates)
+        ? data.candidates
+        : [];
+
+    const candidate =
+      candidates[0];
+
+    if (!candidate) {
+      return null;
+    }
+
+
+    const parts =
+      candidate.content &&
+      Array.isArray(candidate.content.parts)
+        ? candidate.content.parts
+        : [];
+
+
+    const textPart =
+      parts.find(function (part) {
+
+        return (
+          part &&
+          typeof part.text === 'string'
+        );
+
+      });
+
+
+    return textPart
+      ? textPart.text
+      : null;
+  }
+
+
+  // ------------------------------------------------------------
+  // CLEAN JSON RESPONSE
+  // ------------------------------------------------------------
+
+  function cleanJsonText(text) {
+
+    let clean =
+      String(text || '').trim();
+
+
+    // Remove accidental Markdown code fences.
+    clean =
+      clean
+        .replace(/^```json\s*/i, '')
+        .replace(/^```\s*/i, '')
+        .replace(/\s*```$/i, '')
+        .trim();
+
+
+    // If the model added text around the JSON, try to isolate
+    // the outermost JSON object.
+    if (!clean.startsWith('{')) {
+
+      const firstBrace =
+        clean.indexOf('{');
+
+      const lastBrace =
+        clean.lastIndexOf('}');
+
+      if (
+        firstBrace !== -1 &&
+        lastBrace !== -1 &&
+        lastBrace > firstBrace
+      ) {
+
+        clean =
+          clean.slice(
+            firstBrace,
+            lastBrace + 1
+          );
+
+      }
+    }
+
+
+    return clean;
+  }
+
+
+  // ------------------------------------------------------------
+  // GEMINI ERROR MESSAGE
+  // ------------------------------------------------------------
+
+  async function getGeminiError(response) {
+
+    let message =
+      'Gemini API request failed (' +
+      response.status +
+      ').';
+
+
+    try {
+
+      const errorData =
+        await response.json();
+
+
+      if (
+        errorData &&
+        errorData.error &&
+        errorData.error.message
+      ) {
+
+        message =
+          errorData.error.message;
+
+      }
+
+    } catch (_) {
+      // Response was not JSON.
+    }
+
+
+    return message;
+  }
+
+
+  // ------------------------------------------------------------
+  // GENERATE
+  // ------------------------------------------------------------
+
+  async function generate() {
+
+    const interests =
+      document
+        .getElementById('pm-interests')
+        .value
+        .trim();
+
+
+    const skills =
+      document
+        .getElementById('pm-skills')
+        .value
+        .trim();
+
+
+    const domain =
+      document
+        .getElementById('pm-domain')
+        .value;
+
+
+    const difficulty =
+      document
+        .getElementById('pm-difficulty')
+        .value;
+
+
+    const apiKey =
+      document
+        .getElementById('pm-apikey')
+        .value
+        .trim();
+
+
+    // ----------------------------------------------------------
+    // VALIDATION
+    // ----------------------------------------------------------
+
+    if (!interests) {
+
+      setStatus(
+        'Add at least one interest first.',
+        true
+      );
+
+      document
+        .getElementById('pm-interests')
+        .focus();
+
+      return;
+    }
+
+
+    if (!skills) {
+
+      setStatus(
+        'Add at least one skill first.',
+        true
+      );
+
+      document
+        .getElementById('pm-skills')
+        .focus();
+
+      return;
+    }
+
+
+    if (!apiKey) {
+
+      setStatus(
+        'Paste your Google AI Studio API key first.',
+        true
+      );
+
+      document
+        .getElementById('pm-apikey')
+        .focus();
+
+      return;
+    }
+
+
+    // ----------------------------------------------------------
+    // UI STATE
+    // ----------------------------------------------------------
+
+    generateBtn.disabled = true;
+
+    resultsEl.style.display = 'none';
+
+    setStatus(
+      'Consulting the mentor...',
+      false
+    );
+
+
+    // ----------------------------------------------------------
+    // SYSTEM PROMPT
+    // ----------------------------------------------------------
+
+    const systemPrompt = `
+You are an experienced final-year project mentor for CSE/AIML students.
+
+Given a student's interests, skills, preferred domain, and desired difficulty,
+propose exactly 3 distinct, realistic, specific final-year project ideas.
+
+The ideas must be practical and genuinely buildable by the student.
+
+Avoid generic ideas such as:
+- basic chatbots
+- generic attendance systems
+- simple to-do apps
+- basic weather apps
+- generic e-commerce websites
+unless the student's input makes a genuinely differentiated version appropriate.
+
+Respond with ONLY valid JSON.
+Do not use Markdown.
+Do not use code fences.
+Do not add explanations before or after the JSON.
+
+Use exactly this structure:
+
+{
+  "ideas": [
+    {
+      "title": "short punchy project title",
+      "thesis": "one or two sentence description of what the project does and why it matters",
+      "features": [
+        "feature 1",
+        "feature 2",
+        "feature 3",
+        "feature 4"
+      ],
+      "techStack": [
+        "tech 1",
+        "tech 2",
+        "tech 3",
+        "tech 4",
+        "tech 5"
+      ],
+      "steps": [
+        "step 1",
+        "step 2",
+        "step 3",
+        "step 4",
+        "step 5"
+      ],
+      "improvements": [
+        "improvement idea 1",
+        "improvement idea 2",
+        "improvement idea 3"
+      ]
+    }
+  ]
+}
+
+Important requirements:
+
+- Generate exactly 3 ideas.
+- Make every idea meaningfully different.
+- Match the student's actual skills.
+- Respect the selected difficulty.
+- Prefer a working prototype over unnecessary complexity.
+- Include realistic technologies.
+- Explain the practical value of each project.
+- Do not assume advanced skills that the student did not mention.
+
+Desired project scope:
+${difficulty}
+
+Preferred domain:
+${domain}
+`;
+
+
+    // ----------------------------------------------------------
+    // USER PROMPT
+    // ----------------------------------------------------------
+
+    const userPrompt = `
+Student interests:
+${interests}
+
+Student skills:
+${skills}
+
+Preferred domain:
+${domain}
+
+Desired project scope:
+${difficulty}
+`;
+
+
+    // ----------------------------------------------------------
+    // API URL
+    // ----------------------------------------------------------
+
+    const apiUrl =
+      'https://generativelanguage.googleapis.com/v1beta/models/' +
+      GEMINI_MODEL +
+      ':generateContent?key=' +
+      encodeURIComponent(apiKey);
+
+
+    try {
+
+      // --------------------------------------------------------
+      // API REQUEST
+      // --------------------------------------------------------
+
+      const response =
+        await fetch(
+          apiUrl,
+          {
+            method: 'POST',
+
+            headers: {
+              'Content-Type': 'application/json'
+            },
+
+            body: JSON.stringify({
+
+              systemInstruction: {
+                parts: [
+                  {
+                    text: systemPrompt
+                  }
+                ]
+              },
+
+              contents: [
+                {
+                  role: 'user',
+
+                  parts: [
+                    {
+                      text: userPrompt
+                    }
+                  ]
+                }
+              ],
+
+              generationConfig: {
+
+                temperature: 0.7,
+
+                maxOutputTokens: 2500,
+
+                responseMimeType:
+                  'application/json'
+
+              }
+
+            })
+          }
+        );
+
+
+      // --------------------------------------------------------
+      // API ERROR
+      // --------------------------------------------------------
+
+      if (!response.ok) {
+
+        let errorMessage =
+          await getGeminiError(response);
+
+
+        if (
+          response.status === 400
+        ) {
+
+          errorMessage =
+            'Invalid request. Check your API key and try again.';
+
+
+        } else if (
+          response.status === 401 ||
+          response.status === 403
+        ) {
+
+          errorMessage =
+            'API key rejected. Check that the key is valid and has access to the Gemini API.';
+
+
+        } else if (
+          response.status === 404
+        ) {
+
+          errorMessage =
+            'Gemini model "' +
+            GEMINI_MODEL +
+            '" was not found. Check the configured model name.';
+
+
+        } else if (
+          response.status === 429
+        ) {
+
+          errorMessage =
+            'Gemini rate limit reached. Wait a moment and try again.';
+
+
+        } else if (
+          response.status >= 500
+        ) {
+
+          errorMessage =
+            'Google Gemini is temporarily unavailable. Please try again later.';
+
+        }
+
+
+        throw new Error(errorMessage);
+      }
+
+
+      // --------------------------------------------------------
+      // READ RESPONSE
+      // --------------------------------------------------------
+
+      const data =
+        await response.json();
+
+
+      const text =
+        extractGeminiText(data);
+
+
+      if (!text) {
+
+        console.error(
+          'Unexpected Gemini response:',
+          data
+        );
+
+        throw new Error(
+          'Gemini returned an empty response.'
+        );
+
+      }
+
+
+      // --------------------------------------------------------
+      // PARSE JSON
+      // --------------------------------------------------------
+
+      const clean =
+        cleanJsonText(text);
+
+
+      let parsed;
+
+
+      try {
+
+        parsed =
+          JSON.parse(clean);
+
+      } catch (jsonError) {
+
+        console.error(
+          'Gemini returned invalid JSON:',
+          clean
+        );
+
+        throw new Error(
+          'Gemini returned an invalid project format. Please try again.'
+        );
+
+      }
+
+
+      // --------------------------------------------------------
+      // VALIDATE DATA
+      // --------------------------------------------------------
+
+      if (
+        !parsed ||
+        !Array.isArray(parsed.ideas)
+      ) {
+
+        throw new Error(
+          'Unexpected response format from Gemini.'
+        );
+
+      }
+
+
+      if (
+        parsed.ideas.length === 0
+      ) {
+
+        throw new Error(
+          'Gemini did not generate any project ideas.'
+        );
+
+      }
+
+
+      // --------------------------------------------------------
+      // SUCCESS
+      // --------------------------------------------------------
+
+      setStatus(
+        '',
+        false
+      );
+
+      renderBriefs(
+        parsed.ideas
+      );
+
+
+    } catch (error) {
+
+      console.error(
+        'Generation error:',
+        error
+      );
+
+
+      setStatus(
+        'Something went wrong: ' +
+        error.message,
+        true
+      );
+
+
+    } finally {
+
+      generateBtn.disabled = false;
+
+    }
+
+  }
+
+
+  // ------------------------------------------------------------
+  // GOOGLE AI STUDIO LINK
+  // ------------------------------------------------------------
+
+  const keyLink =
+    document.getElementById('pm-key-link');
+
+
+  if (keyLink) {
+
+    keyLink.addEventListener(
+      'click',
+      function () {
+
+        window.open(
+          'https://aistudio.google.com/apikey',
+          '_blank',
+          'noopener,noreferrer'
+        );
+
+      }
+    );
+
+  }
+
+
+  // ------------------------------------------------------------
+  // GENERATE BUTTON
+  // ------------------------------------------------------------
+
+  generateBtn.addEventListener(
+    'click',
+    generate
+  );
+
+
+  // ------------------------------------------------------------
+  // ENTER KEY SUPPORT
+  // ------------------------------------------------------------
+
+  document
+    .getElementById('pm-interests')
+    .addEventListener(
+      'keydown',
+      function (event) {
+
+        if (event.key === 'Enter') {
+          generate();
+        }
+
+      }
+    );
+
+
+  document
+    .getElementById('pm-skills')
+    .addEventListener(
+      'keydown',
+      function (event) {
+
+        if (event.key === 'Enter') {
+          generate();
+        }
+
+      }
+    );
+
+
+})();
+</script>
+
+</body>
+</html>
